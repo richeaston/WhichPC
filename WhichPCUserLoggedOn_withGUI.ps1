@@ -20,11 +20,11 @@ $PCFilter = New-Object System.Windows.Forms.TextBox
 $groupBox1 = New-Object System.Windows.Forms.GroupBox
 $label1 = New-Object System.Windows.Forms.Label
 $Username = New-Object System.Windows.Forms.ComboBox
-$domain = Get-ADDomain | select -ExpandProperty DNSROOT
+$domain = Get-ADDomain | Select-Object -ExpandProperty DNSROOT
 $DC = $domain.split('.')
 $SB = "DC="+$DC[0]+",DC="+$DC[1]
 $sb	
-$pcs = Get-ADuser -SearchBase $sb -Filter * -Properties * | Select -ExpandProperty SamAccountName | Sort-Object
+$pcs = Get-ADuser -SearchBase $sb -Filter * -Properties * | Select-Object -ExpandProperty SamAccountName | Sort-Object
 $username.Items.AddRange($pcs)
 
 $InitialFormWindowState = New-Object System.Windows.Forms.FormWindowState
@@ -41,7 +41,7 @@ $searchuser=
 $progress = 1
 #Get Admin Credentials
 Function Get-Login {
-CLS
+Clear-Host
 Clear-Host
 #Write-Host "Please provide admin credentials (for example DOMAINadmin.user and your password)"
 $Global:Credential = Get-Credential "$env:UserName"
@@ -59,14 +59,14 @@ if ($Username.Text -eq "" -or $PCFilter.text -eq "") {
 		Clear-Host
 		$Global:User = $Username
 				
-		if ($User -eq $null){
+		if ($null -eq $User){
 			$results.items.add("===================================================")
 			$results.Items.add("Username cannot be blank, please re-enter username!")
 			$results.items.add("===================================================")
 			Get-Username
 		}
 		$UserCheck = Get-ADUser $User
-		if ($UserCheck -eq $null){
+		if ($null -eq $UserCheck){
 			$results.items.add("=====================================================================")
 			$results.Items.add("Invalid username, please verify this is the logon id for the account!")
 			$results.items.add("=====================================================================")
@@ -100,10 +100,10 @@ foreach ($comp in $computers){
 	if($Reply -eq 'True'){
 		if($Computer -eq $env:COMPUTERNAME){
 			#Get explorer.exe processes without credentials parameter if the query is executed on the localhost
-			$proc = gwmi win32_process -ErrorAction SilentlyContinue -computer $Computer -Filter "Name = 'explorer.exe'"
+			$proc = Get-WmiObject win32_process -ErrorAction SilentlyContinue -computer $Computer -Filter "Name = 'explorer.exe'"
 		} else {
 			#Get explorer.exe processes with credentials for remote hosts
-			$proc = gwmi win32_process -ErrorAction SilentlyContinue -Credential $Credential -computer $Computer -Filter "Name = 'explorer.exe'"
+			$proc = Get-WmiObject win32_process -ErrorAction SilentlyContinue -Credential $Credential -computer $Computer -Filter "Name = 'explorer.exe'"
 		}
 		#If $proc is empty return msg else search collection of processes for username
 		if([string]::IsNullOrEmpty($proc)){
